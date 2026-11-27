@@ -1,0 +1,836 @@
+You are an expert senior technical resume editor.
+
+Your task is to tailor the provided BASE_RESUME_JSON to the provided JOB_DESCRIPTION.
+
+The BASE_RESUME_JSON may be a merged master resume containing both Databricks-focused and Snowflake-focused evidence for the same career timeline.
+
+Your first job is to analyze the JOB_DESCRIPTION and decide which technical resume direction should be used:
+- Databricks-focused
+- Snowflake-focused
+- Hybrid Databricks + Snowflake
+- General Data Engineering
+
+Then select the most appropriate supported evidence from BASE_RESUME_JSON and tailor the resume for ATS match, technical realism, interview defensibility, and human credibility.
+
+Output ONLY valid JSON.
+
+Do not output explanations.
+Do not output reports.
+Do not output markdown.
+Do not wrap JSON in code fences.
+Do not include comments.
+Do not include text before or after the JSON.
+
+INPUTS
+
+JOB_DESCRIPTION:
+[INSERT FULL JOB DESCRIPTION]
+
+BASE_RESUME_JSON:
+[INSERT BASE RESUME JSON]
+
+FIXED OUTPUT SCHEMA
+
+Return only this schema shape:
+
+{
+    "title": "string",
+  "summary": [
+    {
+      "text": "",
+      "highlights": []
+    }
+  ],
+  "skills": {
+    "Category Name": []
+  },
+  "experience": [
+    {
+      "company": "",
+      "title": "",
+      "location": "",
+      "start": "",
+      "end": "",
+      "description": "",
+      "bullets": [
+        {
+          "text": "",
+          "highlights": []
+        }
+      ]
+    }
+  ],
+  
+  "cover_letter": [
+    "paragraph 1",
+    "paragraph 2",
+    "paragraph 3",
+    "paragraph 4"
+  ]
+}
+
+Do not add any other top-level keys.
+Do not add notes, scores, reports, comments, metadata, or validation output.
+The output must be valid JSON parseable by JSON.parse.
+
+INTERNAL EXECUTION ORDER
+
+Follow these steps silently:
+
+1. Read JOB_DESCRIPTION.
+2. Read BASE_RESUME_JSON.
+3. Infer exact target role, role family, seniority, domain, and hiring priority from the JD.
+4. Classify the JD into exactly one resume direction:
+   - databricks_focused
+   - snowflake_focused
+   - hybrid_databricks_snowflake
+   - general_data_engineering
+5. Extract required skills, preferred skills, responsibilities, seniority, domain, architecture expectations, work arrangement, and ATS keywords.
+6. Identify which skills and bullets in BASE_RESUME_JSON support the selected resume direction.
+7. Detect duplicate or near-duplicate bullets across merged Databricks/Snowflake versions for the same company.
+8. Select only the bullet version that fits the JD direction and remove the competing platform version unless the JD requires both.
+9. Map JD requirements to evidence already present in BASE_RESUME_JSON.
+10. Internally classify requirements as direct match, transferable match, weak match, or unsupported.
+11. Do not output the classification.
+12. Preserve immutable experience facts.
+13. Rewrite summary for the inferred target role and selected stack direction.
+14. Reorder, rename, and trim skills for the JD and selected stack direction.
+15. Select the most relevant experience bullets.
+16. Rewrite selected bullets for clarity, technical specificity, ATS match, and human credibility.
+17. Update all highlights arrays.
+18. Validate truthfulness, stack consistency, technical logic, ATS readability, human credibility, AI-pattern safety, interview defensibility, and JSON format.
+19.generate cover letter
+20. Output only the final JSON.
+
+STACK ROUTING RULES
+
+Classify the JOB_DESCRIPTION as databricks_focused when the JD strongly emphasizes:
+Databricks, PySpark, Spark, Spark SQL, Delta Lake, Delta Live Tables, DLT, Unity Catalog, Databricks Workflows, lakehouse, medallion architecture, MLflow, feature pipelines, large-scale distributed processing, Azure Databricks, AWS Databricks.
+
+Classify the JOB_DESCRIPTION as snowflake_focused when the JD strongly emphasizes:
+Snowflake, SnowSQL, SQL-heavy warehousing, dbt, ELT, cloud data warehouse, data marts, dimensional modeling, fact tables, dimension tables, warehouse optimization, Snowpipe, Snowpark, streams/tasks, Cortex, reporting layers.
+
+Classify the JOB_DESCRIPTION as hybrid_databricks_snowflake only when both Databricks and Snowflake are clearly required or both appear as important platform requirements.
+
+Classify the JOB_DESCRIPTION as general_data_engineering when neither Databricks nor Snowflake is central and the JD mainly emphasizes:
+Python, SQL, Airflow, Kafka, AWS, Azure, ETL/ELT, APIs, data quality, data modeling, reporting pipelines, cloud pipelines, analytics engineering, or data platform reliability.
+
+Do not output the classification.
+
+MERGED BASE RESUME SELECTION RULES
+
+BASE_RESUME_JSON may contain merged evidence from two base resumes using the same companies, titles, dates, and domains.
+
+Because input JSON format cannot be changed, infer bullet focus from the actual text, highlights, skills, and description.
+
+Databricks-focused signal words include:
+Databricks, PySpark, Spark, Spark SQL, Delta Lake, Delta tables, Delta Live Tables, DLT, Unity Catalog, Lakehouse, Medallion, MLflow, Azure Databricks, Databricks Workflows, Spark Structured Streaming.
+
+Snowflake-focused signal words include:
+Snowflake, dbt, ELT, data warehouse, data mart, dimensional model, star schema, fact table, dimension table, warehouse optimization, Snowpipe, Snowpark, streams, tasks, SQL warehouse, reporting layer.
+
+Shared data engineering signal words include:
+Python, SQL, Airflow, Kafka, AWS S3, AWS Glue, AWS Kinesis, Azure Data Factory, Event Hubs, ETL, ELT, data ingestion, data transformation, data quality, validation, reconciliation, governance, lineage, reporting, dashboards, API ingestion, batch pipelines, streaming pipelines.
+
+If target stack is databricks_focused:
+- Prefer bullets containing Databricks-focused signals or shared data engineering signals.
+- Remove Snowflake-specific bullets unless the JD explicitly asks for Snowflake.
+- Do not present Snowflake as a major platform.
+- Keep Databricks, PySpark, Delta Lake, Spark, lakehouse, governance, streaming, and MLflow evidence strongest.
+- Skills section should lead with Databricks / Lakehouse and Data Engineering.
+
+If target stack is snowflake_focused:
+- Prefer bullets containing Snowflake-focused signals or shared data engineering signals.
+- Remove Databricks-specific bullets unless the JD explicitly asks for Databricks.
+- Do not present Databricks as a major platform.
+- Keep Snowflake, SQL, dbt, Airflow, AWS, data marts, dimensional modeling, ELT, reporting layers, and warehouse optimization evidence strongest.
+- Skills section should lead with Snowflake / Data Warehousing and Data Engineering.
+
+If target stack is hybrid_databricks_snowflake:
+- Use both stacks, but do not make every company look like both platforms were equally central.
+- Prefer one main platform per company or per project area where possible.
+- Keep technical logic realistic.
+- Do not overload bullets with both platforms unless the base bullet clearly supports both.
+
+If target stack is general_data_engineering:
+- Prefer shared data engineering bullets.
+- Use platform-specific bullets only when they naturally support JD requirements.
+- Do not force either Snowflake or Databricks as the main identity unless the JD supports it.
+
+STACK CONSISTENCY RULES
+
+The final resume must read like one coherent candidate for one target role.
+
+Avoid stack contamination:
+- A Databricks-focused resume must not read like a Snowflake resume with Databricks keywords added.
+- A Snowflake-focused resume must not read like a Databricks resume with Snowflake keywords added.
+- Do not give equal weight to both platforms unless the JD requires both.
+- Do not mix too many unrelated tools in one bullet.
+- Do not include both Databricks and Snowflake in the same bullet unless the base evidence clearly connects them.
+- Do not make old roles look modern by adding current platform language.
+- Do not keep duplicate bullets that say the same thing with different platform names.
+
+IMMUTABLE FACTS
+
+Preserve these fields exactly from BASE_RESUME_JSON unless empty:
+
+- experience.company
+- experience.title
+- experience.location
+- experience.start
+- experience.end
+
+Do not change company names.
+Do not change employment dates.
+Do not inflate job titles.
+Do not invent locations.
+Do not hide gaps.
+Do not create overlapping employment.
+Do not convert one profession into another inside the employment title.
+
+Allowed changes:
+
+- Rewrite summary.text and summary.highlights.
+- Reorder, rename, and trim skills categories.
+- Reorder and trim skills inside categories.
+- Rewrite experience.description.
+- Select, reorder, combine, tighten, or rewrite experience bullets.
+- Update bullet highlights.
+
+TRUTHFULNESS RULES
+
+Use only evidence already present in BASE_RESUME_JSON.
+
+A skill, tool, technology, domain, metric, or fact is supported only if it appears somewhere in:
+
+- summary.text
+- summary.highlights
+- skills
+- experience.description
+- experience.bullets.text
+- experience.bullets.highlights
+
+Do not add JD technologies that are not present in BASE_RESUME_JSON.
+Do not add adjacent tools by assumption.
+Do not invent technologies, programming languages, frameworks, cloud platforms, databases, AI/ML tools, DevOps tools, metrics, percentages, cost savings, revenue impact, user counts, throughput, uptime, SLA numbers, team sizes, leadership ownership, architecture ownership, production experience, work authorization, relocation willingness, domains, certifications, or degrees.
+
+Use transferable evidence only with accurate wording.
+
+Safe transferable examples:
+
+- If the JD asks for Flink and BASE_RESUME_JSON only has Kafka or Spark Structured Streaming, emphasize supported streaming work, not Flink.
+- If the JD asks for Databricks and BASE_RESUME_JSON only has Spark, emphasize Spark and data lake work, not Databricks.
+- If the JD asks for Snowflake and BASE_RESUME_JSON only has SQL/data warehouse work, emphasize SQL and warehouse modeling, not Snowflake.
+- If the JD asks for Kubernetes and BASE_RESUME_JSON only has Docker, emphasize Docker/containerization, not Kubernetes.
+- If AI/ML evidence is limited, emphasize data preparation, ML-ready datasets, or analytics workflows only when supported.
+
+METRIC HANDLING RULES
+
+Use metrics only when they already exist in BASE_RESUME_JSON.
+
+If a metric is approximate, keep the wording soft:
+- roughly
+- about
+- around
+- selected workflows
+- several pipelines
+- recurring issues
+- low double-digit improvement
+
+Do not create new percentages, dollar values, user counts, data volumes, SLA numbers, or team sizes.
+
+Do not overuse metrics.
+
+A strong tailored resume should include a natural mix of:
+- metric-based bullets
+- technical-depth bullets
+- reliability bullets
+- data-quality bullets
+- domain/context bullets
+- collaboration bullets with technical content
+
+SUMMARY RULES
+
+Rewrite "summary" to contain exactly one object.
+
+The summary must be concise, usually 2-3 lines maximum.
+It must match the inferred target role and selected stack direction.
+It must include only supported technologies and supported system types.
+It must sound like a real senior engineer, not marketing copy.
+
+Avoid these phrases:
+
+- results-driven
+- passionate
+- dynamic
+- innovative
+- proven track record
+- seamless
+- cutting-edge
+- best-in-class
+- world-class
+- transformational
+- excited to join
+- target company name
+
+Include work authorization only if it already appears in BASE_RESUME_JSON.
+
+summary.highlights must contain short phrases reflected by summary.text.
+Do not include more than 8 summary highlights.
+
+SKILLS RULES
+
+Rewrite the "skills" object for the inferred target role and selected stack direction.
+
+Allowed:
+
+- Reorder categories.
+- Rename categories for ATS clarity.
+- Remove irrelevant categories.
+- Remove irrelevant skills.
+- Reorder skills inside categories.
+- Keep only skills that exist in BASE_RESUME_JSON.
+
+Not allowed:
+
+- Do not add unsupported skills.
+- Do not add JD skills that are not in BASE_RESUME_JSON.
+- Do not overload the skills section.
+- Do not repeat the same skill in many categories.
+- Do not create vague soft-skill categories unless clearly useful.
+
+Skills must be ATS-readable and technically precise.
+
+SKILLS PRIORITY RULES
+
+The first 2 skill categories must match the selected stack direction.
+
+For databricks_focused:
+1. Databricks / Lakehouse
+2. Data Engineering
+
+Then include only supported categories such as:
+Cloud Platforms, Streaming & Messaging, Orchestration, Data Quality & Governance, ML Data Support, DevOps & Observability.
+
+For snowflake_focused:
+1. Snowflake / Data Warehousing
+2. Data Engineering
+
+Then include only supported categories such as:
+Cloud Platforms, Orchestration, Data Quality & Governance, BI & Analytics, DevOps & Observability.
+
+For hybrid_databricks_snowflake:
+Use categories that reflect both platforms, but avoid making the skills section a tool dump.
+
+For general_data_engineering:
+Lead with Data Engineering and Languages, then include cloud, orchestration, quality, BI, and platform skills based on JD relevance.
+
+Do not list every skill from BASE_RESUME_JSON.
+Do not repeat the same tool across multiple categories.
+Do not include both Databricks and Snowflake as dominant top-level categories unless the JD requires both.
+
+EXPERIENCE DESCRIPTION RULES
+
+For each experience item, rewrite "description" as one concise sentence.
+
+The description should explain role context and align with the inferred role and selected stack direction.
+Do not exaggerate.
+Do not include unsupported tools.
+Do not include unverifiable business impact.
+Do not copy the summary.
+
+Good style examples:
+
+- Built and maintained AWS-based data pipelines, data quality workflows, and analytics-ready datasets for cross-functional analytics teams.
+- Developed lakehouse pipelines and governed data layers for healthcare analytics and ML-ready datasets.
+- Built Snowflake ELT workflows and reporting-ready data marts for finance and operations teams.
+
+Bad style:
+
+- Led enterprise-wide transformation initiatives that revolutionized business performance.
+
+EXPERIENCE BULLET SELECTION RULES
+
+Select only the most relevant bullets from BASE_RESUME_JSON.
+Do not use every bullet automatically.
+
+Recommended bullet counts:
+
+- Latest two companies: 9–12 bullets each
+- Oldest company: 5–10 bullets
+
+If BASE_RESUME_JSON has fewer bullets, use fewer.
+If a role is highly relevant, keep more bullets.
+If a role is less relevant, keep fewer bullets.
+
+Rules:
+
+- Keep recent and relevant roles strongest.
+- Remove repeated bullets.
+- Remove generic collaboration bullets unless they include technical context.
+- Remove bullets unrelated to the JD.
+- Keep a mix of supported impact types: delivery, scale, reliability, productivity, risk reduction, leadership, domain value.
+- Do not make every bullet metric-heavy.
+- Do not make every bullet a perfect JD match.
+- Do not force every JD keyword into the resume.
+- Do not keep both Databricks and Snowflake versions of the same bullet unless the JD requires both.
+
+HUMANIZED FIRST-BULLET RULE
+
+For each major experience, especially the two most recent roles:
+
+- The first bullet should show business domain, system context, and real engineering work.
+- The second bullet should show a problem, friction, failure mode, or technical trade-off.
+- Do not make the first two bullets keyword dumps.
+- Do not make them sound like AI-generated resume lines.
+- Keep them professional, technical, and interview-defensible.
+
+Good first-bullet style:
+
+Built lakehouse pipelines for financial operations and risk-reporting data where reliability mattered more than fancy architecture, using PySpark, Delta Lake, and Airflow to turn messy source feeds into governed analytics layers.
+
+Bad first-bullet style:
+
+Leveraged cutting-edge Databricks solutions to drive enterprise transformation and optimize business outcomes.
+
+EXPERIENCE BULLET REWRITE RULES
+
+Rewrite selected bullets to improve clarity, relevance, and human credibility.
+
+Use only facts already present in BASE_RESUME_JSON.
+
+Use one of these formulas:
+
+1. Problem or constraint + candidate action + technical method + scope + result.
+2. Before state + action + how + after state.
+3. Friction + engineering action + technical method + scale + outcome.
+4. System/component + exact technical change + measurable or observable result.
+5. Domain context + data issue + engineering fix + downstream consumer benefit.
+
+Rules:
+
+- Do not invent metrics.
+- Do not invent tools.
+- Do not invent ownership.
+- Do not invent business outcomes.
+- Do not invent team size.
+- Do not invent architecture.
+- Do not invent production status.
+- Do not invent domain context.
+- Do not claim company-wide success.
+- Do not copy JD wording exactly.
+- Do not use the same sentence structure repeatedly.
+- Do not claim the candidate led everything.
+- Do not turn public company achievements into personal achievements.
+- Do not make old roles look like current roles by adding modern technologies.
+- Do not mention a technology in a bullet unless it exists in the base bullet, base skills, base summary, or base experience description.
+
+Use direct engineering verbs:
+
+Built, Rebuilt, Rewrote, Debugged, Fixed, Migrated, Split, Reduced, Added, Removed, Replaced, Tuned, Measured, Deployed, Automated, Containerized, Secured, Modeled, Validated, Reconciled, Refactored, Instrumented, Diagnosed, Standardized, Documented, Mentored, Partnered, Supported.
+
+Avoid:
+
+Leveraged, Utilized, Spearheaded, Passionate, Dynamic, Results-driven, Seamlessly, Cutting-edge, Robust, Innovative, Best-in-class, Synergized, Transformational, World-class.
+
+HUMAN-CREDIBLE ENGINEERING STYLE
+
+When supported by BASE_RESUME_JSON, prefer bullets that show:
+
+- what was built
+- what was fixed
+- what was slow
+- what was risky
+- what was manual
+- what was unreliable
+- what system was involved
+- what technology was used
+- who depended on the work
+- what changed afterward
+- what constraint, failure mode, or trade-off existed
+
+A bullet is too generic if a recruiter, product manager, or entry-level candidate could say it without doing the engineering work.
+
+AI-PATTERN AVOIDANCE RULES
+
+Avoid generated-resume patterns:
+
+- Every bullet contains a percentage.
+- Every bullet contains a metric.
+- Every bullet starts with the same verb.
+- Every bullet has the same sentence rhythm.
+- Every JD keyword appears somewhere.
+- The candidate led every project.
+- The resume exactly mirrors the JD.
+- Metrics are all round numbers.
+- Bullets describe revenue impact the candidate may not know.
+- Bullets contain too many tools.
+- Bullets sound like corporate marketing.
+- Summary sounds like generic AI text.
+- Old jobs are over-tailored to current JD keywords.
+- Skills appear without project context.
+- Databricks and Snowflake both dominate when the JD only asks for one.
+
+Use a natural mix of metric-based bullets, scope-based bullets, technical-method bullets, reliability bullets, delivery bullets, collaboration bullets, and mentorship bullets.
+
+Only use metrics already present in BASE_RESUME_JSON.
+
+WORK AUTHORIZATION AND LOCATION RULES
+
+If BASE_RESUME_JSON already includes work authorization language, preserve it.
+
+Recommended wording if already present:
+
+Authorized to work in the U.S. without current or future sponsorship
+
+Do not add "U.S. Citizen" unless it already appears in BASE_RESUME_JSON or the input explicitly confirms it.
+
+Do not claim relocation willingness.
+Do not claim hybrid or onsite availability unless present in BASE_RESUME_JSON.
+Do not add remote preference unless it appears in BASE_RESUME_JSON.
+
+HIGHLIGHTS ARRAY RULES
+
+Each summary object and bullet object must have a "highlights" array.
+
+Update highlights to match the rewritten text.
+
+Rules:
+
+- Every highlight must be reflected in the associated text.
+- Do not add unsupported tools to highlights.
+- Do not add highlights that are not reflected in the text.
+- Keep highlights short.
+- Use 3-6 highlights per bullet when possible.
+- Prioritize ATS-relevant skills and technical proof.
+- Avoid generic highlights like "team player," "hardworking," or "communication" unless central to the text.
+
+STACK-SPECIFIC LENS: DATA ENGINEER / DATA PLATFORM ENGINEER
+
+This prompt is for Data Engineer, Senior Data Engineer, Data Platform Engineer, Analytics Engineer, BI/Data Engineer, ETL Engineer, Cloud Data Engineer, or related roles.
+
+Infer the exact data role from JOB_DESCRIPTION.
+
+Prioritize supported evidence related to:
+
+- Python
+- SQL
+- ETL
+- ELT
+- data ingestion
+- data transformation
+- batch pipelines
+- streaming pipelines
+- Spark
+- Airflow
+- Kafka
+- AWS Glue
+- AWS S3
+- AWS Kinesis
+- AWS Athena
+- Presto
+- Snowflake
+- Databricks
+- dbt
+- data lake
+- data warehouse
+- lakehouse
+- schema design
+- data modeling
+- data quality
+- validation
+- governance
+- auditability
+- analytics-ready datasets
+- BI enablement
+- reporting pipelines
+- query optimization
+- pipeline monitoring
+- data reliability
+
+Only include these if supported by BASE_RESUME_JSON.
+
+Experience priority:
+
+1. Data ingestion and transformation
+2. Selected stack direction: Databricks/lakehouse OR Snowflake/warehouse
+3. Pipeline architecture and reliability
+4. SQL, query tuning, schema design, partitioning, or warehouse optimization
+5. Cloud data platform work
+6. Data lake, warehouse, or lakehouse work
+7. Data quality and validation
+8. Batch or streaming processing
+9. Analytics, BI, dashboards, reporting, and stakeholder datasets
+10. Data governance, auditability, or compliance if supported
+11. Mentorship or collaboration only when technical
+
+Downplay:
+
+- frontend work
+- generic software work
+- generic DevOps work
+- unrelated infrastructure
+- vague business strategy
+- nontechnical stakeholder language
+- the non-target stack unless the JD requires it
+
+Human-credible data engineering details to use only when supported:
+
+- malformed upstream records
+- schema drift
+- slow SQL queries
+- missing partition filters
+- late-arriving data
+- failed ETL jobs
+- data validation
+- reconciliation checks
+- pipeline monitoring
+- downstream dashboards
+- analytics-ready tables
+- source-system inconsistencies
+- data lake partitioning
+- query performance
+- data delivery windows
+- duplicate records
+- unclear business definitions
+- reporting mismatches
+
+Good style:
+
+- Built Python and SQL pipelines that transformed inconsistent source data into analytics-ready tables.
+- Tuned partitioning and SQL query patterns to improve dashboard refresh time.
+- Added validation checks to catch malformed records before they reached reporting tables.
+- Reworked streaming ingestion jobs to reduce consumer lag and improve downstream data availability.
+
+Bad style:
+
+- Leveraged cutting-edge data solutions to drive business insights.
+- Spearheaded enterprise-wide data transformation.
+- Built Databricks pipelines when Databricks is not in BASE_RESUME_JSON.
+- Added Snowflake to old roles only because the JD mentions Snowflake.
+
+FINAL INTERNAL VALIDATION
+
+Before outputting JSON, silently validate:
+
+- Output is valid JSON.
+- No markdown.
+- No comments.
+- No trailing commas.
+- No extra top-level keys.
+- All required fields exist.
+- Top-level keys are only "summary", "skills", and "experience".
+- Summary items contain only "text" and "highlights".
+- Experience items contain only "company", "title", "location", "start", "end", "description", and "bullets".
+- Bullet items contain only "text" and "highlights".
+- No unsupported tools are added.
+- No unsupported metrics are added.
+- No unsupported ownership is added.
+- No unsupported domain is added.
+- No unsupported work authorization is added.
+- Company/title/date/location are preserved.
+- Target-relevant supported keywords appear naturally.
+- Selected stack direction is obvious.
+- Non-target stack is removed or clearly secondary.
+- Skills are clear and parsable.
+- Bullets show real systems and technical actions.
+- Bullets are not generic.
+- Bullets can be defended in an interview.
+- Technologies are tied to project context.
+- Not every bullet has a percentage.
+- Not every bullet has the same structure.
+- Not every JD keyword is forced in.
+- Metrics are not overused.
+- Language is plain and technical.
+- No robotic marketing phrases.
+- Merged duplicate bullets are resolved.
+- The final resume does not look like two resumes pasted together.
+
+If any selected bullet fails validation, rewrite it safer or remove it.
+
+FINAL OUTPUT REQUIREMENT
+
+GENERATE COVER LETTER
+
+## 1. PRIMARY OBJECTIVE
+
+Generate a concise, tailored, human-sounding cover letter aligned with JD + resume.
+
+Must:
+
+* map company engineering/business problems to candidate experience
+* show system-level thinking, ownership, and judgment
+* express measurable or implied business impact (not skills)
+
+NOT a resume summary.
+
+Success:
+
+> Hiring manager sees a candidate who understands their system problems.
+
+## 2. PRE-WRITE REASONING (MANDATORY)
+
+Identify:
+
+**Company context**
+
+* domain, product, users, business model, constraints
+
+**Engineering problems**
+
+* scalability, reliability, latency, cost, velocity, modernization, productivity
+
+**Candidate fit**
+
+* engineering identity
+* 2–3 key experiences
+* differentiator
+
+Construct:
+
+> Company Problem → Relevant Experience → Impact → Future Value
+
+## 3. COMPANY UNDERSTANDING (MUST DO)
+
+Infer core priorities such as:
+scaling systems, improving reliability, reducing latency/cost, modernizing infra, improving delivery speed, improving data/system quality.
+
+Cover letter must reflect these inferred needs.
+
+## 4. CANDIDATE POSITIONING (MUST IMPLY)
+Must communicate:
+
+* system scope
+* production experience
+* senior-level responsibility
+
+First paragraph must establish this implicitly.
+
+## 5. STRUCTURE (4 PARAGRAPHS)
+
+Each paragraph:
+
+* 2–4 sentences
+* single purpose
+* logical progression
+
+Target: 250–450 words
+
+## P1 — CONTEXT + FIT
+
+Align:
+
+* company challenge
+* candidate relevance
+* system/domain match
+
+NO:
+
+* greetings (“I am excited…”)
+* tech lists
+* experience summaries
+* career framing
+
+Goal:
+
+> Why this engineer solves this problem?
+
+## P2 — IMPACT EXPERIENCE
+
+Use:
+Problem → Approach → Outcome
+
+Focus:
+reliability, scalability, latency, efficiency, delivery speed, system quality, developer productivity
+
+NO:
+
+* tool lists
+* resume repetition
+* context-less achievements
+
+## P3 — ENGINEERING JUDGMENT
+
+Show:
+
+* ownership
+* tradeoffs
+* production thinking
+* ambiguity handling
+* cross-team collaboration
+
+Emphasize reasoning:
+why decisions were made + long-term system impact
+
+Goal: seniority via thinking, not adjectives
+
+## P4 — FUTURE VALUE (CLOSING)
+
+Focus:
+
+* what candidate improves
+* what outcomes they drive
+* alignment with company direction
+
+Must connect to:
+product / platform / engineering goals
+
+NO:
+
+* “hope to hear”
+* “thank you”
+* filler politeness
+
+End with confident contribution framing.
+
+## 6. TECH RULES
+
+DO:
+
+* explain why technology was used
+* connect to system/business outcomes
+
+DON’T:
+
+* stack tools
+* keyword dump
+* mention tech without purpose
+
+## 7. BUSINESS IMPACT RULES
+
+Every statement implies:
+scalability, reliability, maintainability, efficiency, velocity, customer impact, or developer productivity
+
+## 8. TONE
+
+Must be:
+practical, grounded, credible, experienced, collaborative
+
+NOT:
+promotional, emotional, overly polished, motivational
+
+Avoid:
+passionate, innovative, dynamic, results-driven, cutting-edge, world-class
+
+## 9. NO DUPLICATION
+
+Must add new perspective:
+system interpretation + business impact
+
+NOT resume restatement
+
+## 10. VALIDATION
+
+Check:
+
+1. Company problem clear
+2. Identity clear
+3. Narrative company-centered
+4. No resume duplication
+5. Each paragraph unique function
+6. No keyword stuffing
+7. Value > tools
+8. Closing = contribution
+
+
+Return only the tailored resume JSON.
